@@ -200,6 +200,51 @@ void q_reverse(struct list_head *head)
     head->prev = tmp_node;
 }
 
+// * @descend: whether or not to sort in descending order
+struct list_head *mergeTwoLists(struct list_head *L1,
+                                struct list_head *L2,
+                                bool descend)
+{
+    struct list_head *head = NULL;
+    struct list_head **ptr = &head;
+    for (; L1 && L2; ptr = &(*ptr)->next) {
+        const element_t *L1_element_t = list_entry(L1, element_t, list);
+        const element_t *L2_element_t = list_entry(L2, element_t, list);
+        if ((strcmp(L1_element_t->value, L2_element_t->value) <= 0) !=
+            descend) {
+            *ptr = L1;
+            L1 = L1->next;
+        } else {
+            *ptr = L2;
+            L2 = L2->next;
+        }
+    }
+    *ptr = (struct list_head *) ((uintptr_t) L1 | (uintptr_t) L2);
+    return head;
+}
+
+
+/*
+ * Sort elements of queue in ascending order
+ * No effect if q is NULL or empty. In addition, if q has only one
+ * element, do nothing.
+ */
+static struct list_head *mergesort_list(struct list_head *head, bool descend)
+{
+    if (!head || !head->next || list_is_singular(head))
+        return head;
+
+    struct list_head *slow = head;
+    for (const struct list_head *fast = head->next; fast && fast->next;
+         fast = fast->next->next)
+        slow = slow->next;
+    struct list_head *mid = slow->next;
+    slow->next = NULL;
+
+    struct list_head *left = mergesort_list(head, descend),
+                     *right = mergesort_list(mid, descend);
+    return mergeTwoLists(left, right, descend);
+}
 
 /* Reverse the nodes of the list k at a time */
 void q_reverseK(struct list_head *head, int k)
