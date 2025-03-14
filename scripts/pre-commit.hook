@@ -206,6 +206,23 @@ for FILE in $FILES; do
   fi
 done
 
+# Check syntax for changed shell scripts
+SHELL_FILES=()
+for file in "${FILES[@]}"; do
+  if [[ "$file" =~ ^scripts/common\.sh$ || "$file" =~ ^scripts/.*\.hook$ ]]; then
+    SHELL_FILES+=("$file")
+  fi
+done
+if [ "${#SHELL_FILES[@]}" -gt 0 ]; then
+  for file in "${SHELL_FILES[@]}"; do
+    if ! bash -n "$file"; then
+      throw "Syntax errors detected in $file." >&2
+    fi
+  done
+fi
+
+# Show insertion and deletion counts.
+
 if [ ! -z "${FILES[*]}" ]; then
   echo "Following files need to be cleaned up:"
   echo "${FILES[*]}"
